@@ -6,7 +6,7 @@ from scraper import BoligScraper
 
 
 def main():
-    scraper = BoligScraper('config/config.json')
+    scraper = BoligScraper('config/config.yaml')
     notifier = TelegramNotifier()
 
     # test

@@ -1,4 +1,4 @@
-import json
+import yaml
 from datetime import datetime
 from typing import List, Dict
 
@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 
 class BoligScraper:
     def __init__(self, config_path: str):
+        self.listings_cache_file = "seen_listings.txt"
         self.config = self._load_config(config_path)
         self.seen_listings = self._load_seen_listings()
         self.headers = {
@@ -20,17 +21,17 @@ class BoligScraper:
 
     def _load_config(self, config_path: str) -> Dict:
         with open(config_path, 'r') as f:
-            return json.load(f)
+            return yaml.safe_load(f)
 
     def _load_seen_listings(self) -> set:
         try:
-            with open(self.config['listings_cache_file'], 'r') as f:
+            with open(self.listings_cache_file, 'r') as f:
                 return set(line.strip() for line in f)
         except FileNotFoundError:
             return set()
 
     def _save_seen_listings(self):
-        with open(self.config['listings_cache_file'], 'w') as f:
+        with open(self.listings_cache_file, 'w') as f:
             for listing_id in self.seen_listings:
                 f.write(f"{listing_id}\n")
 
@@ -121,6 +122,7 @@ class BoligScraper:
                             'listing_age': listing_age,
                             'found_at': datetime.now().isoformat()
                         }
+
 
                         # Only include listings that are 0 to 5 minutes old
                         if listing_age and "minute" in listing_age:
