@@ -1,4 +1,8 @@
-# Boligportal Scraper Bot
+**FORK**
+
+Please find the original README [here](https://github.com/francescaboe/boligportaldk-notifyme)
+
+# Boligportal Notifier Bot
 
 An automated scraper that monitors boligportal.dk for new rental listings and sends notifications via Telegram.
 
@@ -24,52 +28,65 @@ boligportaldk-notifyme/
 
 ## Setup
 
+
+1. Obtain the Telegram bot API token and Chat ID for instant notifications.
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+```
+
+- Text the @BotFather to set up a new bot
+- Start a conversation with the bot in a private message
+- With the new API token, access the `https://api.telegram.org/bot<token>/getUpdates` URL in a web browser and find the *result[0].message.chat.id* 
+
+2. Configure `config/config.yaml` to your liking:
+- `search_url`: The Boligportal.dk search URL to monitor.
+    For optimal results, apply filters from the website and then copy the resulting URL.
+    For location filters, go to the map view, zoom in to the area of your liking, copy the resulting URL and remove the `&view=map` parameter.
+    > [!IMPORTANT]
+    > The scraper works ONLY with results! 
+    > Ensure that the URL looks like this: `https://www.boligportal.dk/en/...`
+- `check_interval`: Time between checks in seconds
+
+## Installation and Usage with Docker
 1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/boligportaldk-notifyme.git
 ```
 
-2. Install dependencies:
+and `cd` into it.
+
+2. Build the Docker image:
 ```bash
-pip install -r requirements.txt
+docker build -t "boligportal-scraper" .
 ```
 
-3. Create a `.env` file with your Telegram credentials: (google how to get telegram bot token and chat id, it's pretty straightforward)
-```
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
-```
+**OPTION 1** Plain Docker
 
-4. Configure `config/config.json` to your liking:
-- `search_url`: The Boligportal.dk search URL to monitor.
-    For optimal results, apply filters from the website and then copy the resulting URL.
-    For location filters, go to the map view, zoom in to the area of your liking, copy the resulting URL and remove the `&view=map` parameter.
-- `check_interval`: Time between checks in seconds
-- `seen-listings.txt`: File to store seen listing IDs
-
-## Usage
-
-### Local Development
-
-Start the bot:
-
-if you're using Pycharm the venv is activated for you automatically, otherwise
-```
-source venv/bin/activate    # (Linux/macOS) 
-
-venv\Scripts\activate       # (Windows)
-```
-then
+3. Run the container:
 ```bash
-python main.py
+docker run -e TELEGRAM_BOT_TOKEN=<token> -e TELEGRAM_CHAT_ID=<chat_id> boligportal-scraper:latest
 ```
-### Cloud Deployment
 
-I used apify, but you can use any cloud provider you want.
-The setup is pretty straightforward, connect your GitHub repo to apify, and then you can deploy the actor.
+**OPTION 2** Docker Compose
 
-## Environment Variables
+3. In a directory of your choice, create a compose file:
+```yaml
+services:
+  boligportal-notifier:
+    restart: unless-stopped
+    image: boligportal-notifyme:latest
+    volumes:
+      - ./data:/app/config
+    tty: true
+    environment:
+      - TELEGRAM_BOT_TOKEN=<token>
+      - TELEGRAM_CHAT_ID=<chat_id>
+networks: {}
+```
 
-- `TELEGRAM_BOT_TOKEN`: Your Telegram bot token
-- `TELEGRAM_CHAT_ID`: Your Telegram chat ID for notifications
-
+4. Create the *./data* directory and copy the *config/config.yaml* file there
+5. Bring the stack up with 
+```bash
+docker compose up
+```
